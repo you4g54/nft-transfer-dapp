@@ -283,6 +283,7 @@ export function BatchTransferForm() {
                   contractAddress={contractAddress}
                   onSelect={handleNFTSelect}
                   contractType={contractType}
+                  selectedTokenIds={tokens.map(t => t.tokenId)}
                 />
               </div>
             )}
@@ -325,7 +326,7 @@ export function BatchTransferForm() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
               {tokens.map((token, index) => {
                 // Check transfer status for this token (ERC-721 only)
                 const tokenTransferStatus = isERC721

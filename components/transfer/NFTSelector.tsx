@@ -11,9 +11,10 @@ interface NFTSelectorProps {
   contractAddress: string;
   onSelect: (tokenId: string, balance: string) => void;
   contractType?: ContractType;
+  selectedTokenIds?: string[];
 }
 
-export function NFTSelector({ contractAddress, onSelect, contractType = "unknown" }: NFTSelectorProps) {
+export function NFTSelector({ contractAddress, onSelect, contractType = "unknown", selectedTokenIds = [] }: NFTSelectorProps) {
   const { address } = useAccount();
   const [tokenIdInput, setTokenIdInput] = useState("");
   const [tokenIdsToCheck, setTokenIdsToCheck] = useState<bigint[]>([]);
@@ -97,7 +98,7 @@ export function NFTSelector({ contractAddress, onSelect, contractType = "unknown
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Token Check Results
+              Token Check Results ({balances.length})
             </h4>
             <button
               type="button"
@@ -107,69 +108,85 @@ export function NFTSelector({ contractAddress, onSelect, contractType = "unknown
               Refresh
             </button>
           </div>
-          <div className="grid gap-2">
-            {balances.map(({ tokenId, balance, isOwner, owner }) => (
-              <div
-                key={tokenId.toString()}
-                className={`flex items-center justify-between rounded-lg border p-3 ${
-                  isOwner
-                    ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
-                    : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white ${
-                      isOwner
-                        ? "bg-gradient-to-br from-green-400 to-emerald-500"
-                        : "bg-gradient-to-br from-zinc-400 to-zinc-500"
-                    }`}
-                  >
-                    #{tokenId.toString().slice(0, 3)}
+          <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
+            {balances.map(({ tokenId, balance, isOwner, owner }) => {
+              const isSelected = selectedTokenIds.includes(tokenId.toString());
+              return (
+                <div
+                  key={tokenId.toString()}
+                  className={`flex items-center justify-between rounded-lg border p-3 transition-all ${
+                    isSelected
+                      ? "border-yellow-400 bg-yellow-50 ring-1 ring-yellow-400 dark:border-yellow-600 dark:bg-yellow-900/20 dark:ring-yellow-600"
+                      : isOwner
+                      ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
+                      : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white ${
+                        isSelected
+                          ? "bg-gradient-to-br from-yellow-400 to-orange-500"
+                          : isOwner
+                          ? "bg-gradient-to-br from-green-400 to-emerald-500"
+                          : "bg-gradient-to-br from-zinc-400 to-zinc-500"
+                      }`}
+                    >
+                      #{tokenId.toString().slice(0, 3)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        Token #{tokenId.toString()}
+                      </p>
+                      {contractType === "ERC721" ? (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {isOwner ? (
+                            <span className="text-green-600 dark:text-green-400">You own this</span>
+                          ) : owner ? (
+                            <>Owner: {shortenAddress(owner as string)}</>
+                          ) : (
+                            "Token not found"
+                          )}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Balance: {balance.toString()}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Token #{tokenId.toString()}
-                    </p>
-                    {contractType === "ERC721" ? (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {isOwner ? (
-                          <span className="text-green-600 dark:text-green-400">You own this</span>
-                        ) : owner ? (
-                          <>Owner: {shortenAddress(owner as string)}</>
-                        ) : (
-                          "Token not found"
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Balance: {balance.toString()}
-                      </p>
+                  <div className="flex items-center gap-2">
+                    {isOwner && (
+                      isSelected ? (
+                        <span className="flex items-center gap-1 rounded-lg bg-yellow-100 px-3 py-1.5 text-xs font-medium text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Added
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onSelect(tokenId.toString(), balance.toString())}
+                          className="rounded-lg bg-yellow-500 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-yellow-400"
+                        >
+                          Select
+                        </button>
+                      )
                     )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isOwner && (
                     <button
                       type="button"
-                      onClick={() => onSelect(tokenId.toString(), balance.toString())}
-                      className="rounded-lg bg-yellow-500 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-yellow-400"
+                      onClick={() => handleRemoveTokenId(tokenId)}
+                      className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                     >
-                      Select
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTokenId(tokenId)}
-                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

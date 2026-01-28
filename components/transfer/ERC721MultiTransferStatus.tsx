@@ -7,7 +7,7 @@ import type { Hash } from "viem";
 interface TransferResult {
   tokenId: bigint;
   hash: Hash;
-  status: "success" | "failed";
+  status: "pending" | "success" | "failed";
 }
 
 interface ERC721MultiTransferStatusProps {
@@ -22,6 +22,8 @@ interface ERC721MultiTransferStatusProps {
   completedTransfers: TransferResult[];
   error: Error | null;
   failedTokenId?: bigint;
+  pendingConfirmations?: number;
+  allTransfersSubmitted?: boolean;
   onRetry: () => void;
   onSkip: () => void;
   onReset: () => void;
@@ -47,6 +49,8 @@ export function ERC721MultiTransferStatus({
   completedTransfers,
   error,
   failedTokenId,
+  pendingConfirmations = 0,
+  allTransfersSubmitted = false,
   onRetry,
   onSkip,
   onReset,
@@ -60,13 +64,14 @@ export function ERC721MultiTransferStatus({
     return `https://etherscan.io/tx/${hash}`;
   };
 
-  const getExplorerName = () => {
-    return chain?.blockExplorers?.default?.name || "Explorer";
-  };
-
   const successCount = completedTransfers.filter(t => t.status === "success").length;
   const failedCount = completedTransfers.filter(t => t.status === "failed").length;
-  const progressPercent = totalCount > 0 ? (completedTransfers.length / totalCount) * 100 : 0;
+  const pendingCount = completedTransfers.filter(t => t.status === "pending").length;
+
+  // Progress based on submitted transfers
+  const submittedPercent = totalCount > 0 ? (completedTransfers.length / totalCount) * 100 : 0;
+  // Confirmed progress
+  const confirmedPercent = totalCount > 0 ? ((successCount + failedCount) / totalCount) * 100 : 0;
 
   // Get current action text
   const getCurrentAction = () => {
@@ -98,18 +103,29 @@ export function ERC721MultiTransferStatus({
           </span>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar - Dual progress showing submitted vs confirmed */}
         <div className="mb-4">
           <div className="mb-2 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
             <span>Progress</span>
-            <span>{Math.round(progressPercent)}%</span>
+            <span>
+              {pendingCount > 0 && !isComplete && (
+                <span className="mr-2 text-yellow-500">{pendingCount} confirming</span>
+              )}
+              {Math.round(confirmedPercent)}% confirmed
+            </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-700">
+          <div className="relative h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-700">
+            {/* Submitted progress (yellow/orange) */}
             <div
-              className={`h-full transition-all duration-500 ease-out ${
-                isComplete ? "bg-green-500" : "bg-yellow-500"
+              className="absolute h-full transition-all duration-300 ease-out bg-yellow-400/50"
+              style={{ width: `${submittedPercent}%` }}
+            />
+            {/* Confirmed progress (green) */}
+            <div
+              className={`absolute h-full transition-all duration-500 ease-out ${
+                isComplete ? "bg-green-500" : "bg-green-500"
               }`}
-              style={{ width: `${progressPercent}%` }}
+              style={{ width: `${confirmedPercent}%` }}
             />
           </div>
         </div>
@@ -227,7 +243,7 @@ export function ERC721MultiTransferStatus({
         {completedTransfers.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Completed Transfers
+              Transfers
             </p>
             <div className="max-h-40 space-y-1.5 overflow-y-auto">
               {completedTransfers.map((transfer, index) => (
@@ -236,6 +252,8 @@ export function ERC721MultiTransferStatus({
                   className={`flex items-center justify-between rounded-md px-3 py-2 text-sm ${
                     transfer.status === "success"
                       ? "bg-green-50 dark:bg-green-900/20"
+                      : transfer.status === "pending"
+                      ? "bg-yellow-50 dark:bg-yellow-900/20"
                       : "bg-red-50 dark:bg-red-900/20"
                   }`}
                 >
@@ -244,14 +262,22 @@ export function ERC721MultiTransferStatus({
                       <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
+                    ) : transfer.status === "pending" ? (
+                      <svg className="h-4 w-4 animate-spin text-yellow-500" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
                     ) : (
                       <svg className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     )}
-                    <span className={transfer.status === "success"
-                      ? "text-green-700 dark:text-green-400"
-                      : "text-red-700 dark:text-red-400"
+                    <span className={
+                      transfer.status === "success"
+                        ? "text-green-700 dark:text-green-400"
+                        : transfer.status === "pending"
+                        ? "text-yellow-700 dark:text-yellow-400"
+                        : "text-red-700 dark:text-red-400"
                     }>
                       Token #{transfer.tokenId.toString()}
                     </span>
@@ -262,6 +288,16 @@ export function ERC721MultiTransferStatus({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-mono text-xs text-green-600 hover:text-green-500 dark:text-green-500 dark:hover:text-green-400"
+                    >
+                      {shortenAddress(transfer.hash, 4)} ↗
+                    </a>
+                  )}
+                  {transfer.status === "pending" && transfer.hash !== "0x" && (
+                    <a
+                      href={getExplorerUrl(transfer.hash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-yellow-600 hover:text-yellow-500 dark:text-yellow-500 dark:hover:text-yellow-400"
                     >
                       {shortenAddress(transfer.hash, 4)} ↗
                     </a>

@@ -149,6 +149,7 @@ export function SingleTransferForm() {
               contractAddress={contractAddress}
               onSelect={handleNFTSelect}
               contractType={contractType}
+              selectedTokenIds={tokenId ? [tokenId] : []}
             />
           </div>
         )}
